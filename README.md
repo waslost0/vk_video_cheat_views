@@ -17,5 +17,5 @@ Params:
 
 | Name | Usage | Default |
 | --- | --- | --- |
-| -u --url | -u https://videos242888501?z=video242888501_456239030  | `None` |
-| -t --threads | -t 200 | `50` |
+| -u/ --url | -u https://videos242888501?z=video242888501_456239030  | `None` |
+| -t/ --threads | -t 200 | `50` |
