@@ -1,7 +1,7 @@
 # vk_video_cheat_views
 Increase views count on vk video
 
-# Пример использования
+# Usage example
 ```bash
 $ git clone https://github.com/waslosted/vk_video_cheat_views.git
 
