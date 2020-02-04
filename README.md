@@ -1,5 +1,5 @@
 # vk_video_cheat_views
-Increase view count on vk video
+Increase views count on vk video
 
 # Пример использования
 ```bash
