@@ -7,7 +7,7 @@ $ git clone https://github.com/waslosted/vk_video_cheat_views.git
 
 $ pip install requirements.txt
 
-$ python vidv.py -u https://videos242888501?z=video242888501_456239030 -t 10
+$ python vidv.py -u https://vk.com/videos242888501?z=video242888501_456239030 -t 10
 ```
 
 
