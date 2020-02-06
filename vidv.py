@@ -125,16 +125,17 @@ def main():
 
 
 def get_uid_vid(url):
-    """
-        Get uid and vid data
-    """
     try:
         match = re.findall('video-?(\\d+)_(\\d+)', str(url))[0]
-        CONFIG['oid'] = match[0]
+        if '-' in url:
+            CONFIG['oid'] =  '-'+str(match[0])
+        else:
+            CONFIG['oid'] =  str(match[0])
         CONFIG['vid'] = match[1]
-    except IndexError as error:
+        print(CONFIG)
+    except IndexError as e:
         print('Invalid input')
-        raise error
+        raise e
 
 
 def get_threads(threads):
