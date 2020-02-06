@@ -150,7 +150,7 @@ if __name__ == '__main__':
     PARSER.add_argument('-t', '--threads', type=int, help='Threads count\n -t 50')
     PARSER.add_argument('-u', '--url', type=str, help='Url\n -u https://videos242888501?z=video242888501_456239030')
 
-    ARGS = ARGS.parse_args()
+    ARGS = PARSER.parse_args()
 
     try:
         if ARGS.threads:
