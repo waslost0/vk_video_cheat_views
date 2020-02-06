@@ -17,5 +17,5 @@ Params:
 
 | Name | Usage | Default |
 | --- | --- | --- |
-| -u | -u https://videos242888501?z=video242888501_456239030  | `None` |
+| -u | -u https://vk.com/videos242888501?z=video242888501_456239030  | `None` |
 | -t | -t 200 | `50` |
