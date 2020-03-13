@@ -1,4 +1,4 @@
-# vk_video_cheat_views
+# <del> vk_video_cheat_views </del>
 Increase views count on vk video
 
 # Usage example
