@@ -1,4 +1,4 @@
-# <del> vk_video_cheat_views </del>
+# vk_video_cheat_views
 Increase views count on vk video / Накрутка просмотров на видео вк
 Supported proxy types: http, https, socks4, socks5
 
