@@ -19,7 +19,7 @@ with open('http.txt', 'r') as f:
 CONFIG = {
     'oid': 0,
     'vid': 0,
-    'threads': 50,
+    'threads': 100,
     'proxy_type': ProxyType.HTTP,
 }
 
