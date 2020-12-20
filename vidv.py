@@ -4,12 +4,23 @@ import re
 import time
 import asyncio
 import aiohttp
+from fake_useragent import UserAgent
+from random import choice
+from aiohttp_proxy import ProxyConnector, ProxyType
+
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
+UA = UserAgent()
+with open('http.txt', 'r') as f:
+    PROXY = f.read().splitlines()
 
 
 CONFIG = {
     'oid': 0,
     'vid': 0,
-    'threads': 50
+    'threads': 50,
+    'proxy_type': ProxyType.HTTP,
 }
 
 
@@ -33,90 +44,92 @@ class CheatVideoViews:
         self.start_time = time.time()
 
     @staticmethod
-    async def video_params():
+    async def request_increment_view_count(connector):
         """
             Get video params
             video data and player params
         """
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post("https://vk.com/al_video.php", data={
-                        'al': 1,
+            ua = UA.random
+            async with aiohttp.ClientSession(connector=connector,trust_env=True) as session:
+                async with session.post("https://vk.com/al_video.php?act=show", data={
                         'act': "show",
+                        'al': 1,
+                        'module':'profile_videos',
                         'video': f'{CONFIG["oid"]}_{CONFIG["vid"]}'
                 }, headers={
                     "cookie": '',
-                    "user-agent": f'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/'
-                                  f'{(random.random() * 600)}.36 (KHTML, like Gecko) Chrome/'
-                                  f'{(random.random() * 59)}.0.3029.110 Safari/$'
-                                  f'{(random.random() * 1000)}.36',
+                    "user-agent": ua,
                     "sec-fetch-mode": "cors",
                     "referer": "https://vk.com",
                     "X-Requested-With": "XMLHttpRequest",
                     "content-type": "application/x-www-form-urlencoded"
-                }) as response:
+                },
+                ) as response:
                     json = await response.json()
 
                     vid = VideoPayload(json)
-            return vid
-        except (RuntimeError, ConnectionError) as error:
-            print(error)
 
-    @staticmethod
-    async def request_increment_view_count(hash_date):
-        """
-            POST increase video view count
-        """
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post("https://vk.com/al_video.php", data={
-                        'act': "video_view_started",
+                async with session.post("https://vk.com/al_video.php?act=video_view_started", data={
                         'al': 1,
-                        'oid': str(CONFIG['oid']),
-                        'vid': str(CONFIG['vid']),
-                        'hash': hash_date
+                        'hash': vid.player_params['view_hash'],
+                        'oid': f'{CONFIG["oid"]}',
+                        'vid': f'{CONFIG["vid"]}',
                 }, headers={
                     "cookie": '',
-                    "user-agent": f'Mozilla/5.0 (Windows NT 10.0) AppleWebKit/'
-                                  f'{(random.random() * 600)}.36 (KHTML, like Gecko) Chrome/'
-                                  f'{(random.random() * 59)}.0.3029.110 Safari/$'
-                                  f'{(random.random() * 1000)}.36',
-                    "sec-fetch-mode": "cors",
                     "referer": "https://vk.com",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "sec-fetch-mode": "cors",
+                    "user-agent": ua,
                     "X-Requested-With": "XMLHttpRequest",
-                    "content-type": "application/x-www-form-urlencoded"
-                }) as response:
-                    return response
-        except (RuntimeError, ConnectionError) as error:
-            print(error)
+                    'Accept': '*/*',
+                    'origin': 'https://vk.com',
+
+                }
+                ) as response:
+                    await response.text()
+
+                return vid
+        except Exception as error:
+            # print(error)
+            return None
 
     async def start(self):
         """
             Start and print info status
         """
         while True:
-            video_payload = await self.video_params()
-            await self.request_increment_view_count(hash_date=video_payload.player_params['view_hash'])
-            print(
-                f"Views counts: {video_payload.video_info['info'][10]}. Time from start: "
-                f"{int(time.time() - self.start_time)}  Requests counts: "
-                f"{self.requests_count}")
-            self.requests_count = self.requests_count + 1
-            await asyncio.sleep(random.randrange(0, 1))
+            proxy = PROXY.pop()
+            connector = ProxyConnector(
+                proxy_type=CONFIG["proxy_type"],
+                host=proxy.split(':')[0],
+                port=int(proxy.split(':')[1]),
+                rdns=True,
+                ssl=False
+            )
+
+            video_payload = await self.request_increment_view_count(connector)
+
+            if video_payload:
+                print(
+                    f"Views counts: {video_payload.video_info['info'][10]}. Time from start: "
+                    f"{int(time.time() - self.start_time)}")
+                await asyncio.sleep(random.randrange(1))
+            PROXY.append(proxy) 
 
 
 async def asynchronous():
     """
-        Init async
+        Init async start
     """
     script = CheatVideoViews()
-    tasks = [asyncio.ensure_future(script.start()) for i in range(0, int(CONFIG['threads']))]
+    tasks = [asyncio.ensure_future(script.start()) for i in range(0, CONFIG['threads'])]
     await asyncio.wait(tasks)
 
 
 def main():
     """
-        Just main/ Init loop
+        Init loop
     """
     ioloop = asyncio.get_event_loop()
     print('Asynchronous:')
@@ -128,9 +141,9 @@ def get_uid_vid(url):
     try:
         match = re.findall('video-?(\\d+)_(\\d+)', str(url))[0]
         if '-' in url:
-            CONFIG['oid'] =  '-'+str(match[0])
+            CONFIG['oid'] = '-'+str(match[0])
         else:
-            CONFIG['oid'] =  str(match[0])
+            CONFIG['oid'] = str(match[0])
         CONFIG['vid'] = match[1]
         print(CONFIG)
     except IndexError as e:
@@ -138,11 +151,22 @@ def get_uid_vid(url):
         raise e
 
 
-def get_threads(threads):
+def set_threads(threads):
     """
         Threads count
     """
     CONFIG['threads'] = threads
+
+
+def set_proxy_type(proxy_type):
+    if 'socks4' in proxy_type.lower():
+        CONFIG['proxy_type'] = ProxyType.SOCKS4
+    elif 'http' in proxy_type.lower():
+        CONFIG['proxy_type'] = ProxyType.HTTP
+    elif 'https' in proxy_type.lower():
+        CONFIG['proxy_type'] = ProxyType.HTTPS
+    elif 'socks5' in proxy_type.lower():
+        CONFIG['proxy_type'] = ProxyType.SOCKS5
 
 
 if __name__ == '__main__':
@@ -150,16 +174,18 @@ if __name__ == '__main__':
     PARSER = argparse.ArgumentParser(description='VidViews')
     PARSER.add_argument('-t', '--threads', type=int, help='Threads count\n -t 50')
     PARSER.add_argument('-u', '--url', type=str, help='Url\n -u https://videos242888501?z=video242888501_456239030')
+    PARSER.add_argument('-p', '--proxy_type', type=str, help='proxy type\n -p https')
 
     ARGS = PARSER.parse_args()
 
     try:
         if ARGS.threads:
-            get_threads(ARGS.threads)
+            set_threads(ARGS.threads)
+            set_proxy_type(ARGS.proxy_type)
         get_uid_vid(ARGS.url)
         main()
     except Exception as error:
         print('URL is required.\n')
         print(error)
     print('\nInput example: vidv.exe -u https://videos242888501?z=video242888501_456239030 -t 100\nOr: vidvk.exe -u '
-          'video242888501_456239030 -t 50')
+          'video242888501_456239030 -t 50 -p http')
