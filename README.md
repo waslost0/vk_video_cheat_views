@@ -19,5 +19,5 @@ Params:
 | Name | Full Name |Usage | Default | 
 | --- | --- | --- | --- |
 | -u | --url | -u https://vk.com/videos242888501?z=video242888501_456239030  | `None` |
-| -t | --threads | -t 200 | `50` |
+| -t | --threads | -t 200 | `100` |
 | -p | --proxy_type| -p http | `http` |
